@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Intimate Evenings - Positions Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cardBg: '#f2eee9',
+                        cardBorder: '#dcd5cc',
+                        brandRed: '#d92b4b',
+                        brandBlue: '#2183c5',
+                        brandPink: '#e8719c',
+                        brandDark: '#121110'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        condensed: ['Oswald', 'Impact', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons & Fonts -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #1e1b18 0%, #0a0908 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            touch-action: manipulation;
+        }
+
+        /* Physical Card Look matching inspiration design */
+        .position-card {
+            background-color: #f6f3ee;
+            border: 1px solid #dcd5cc;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0,0,0,0.2);
+            color: #1a1a1a;
+            border-radius: 1.25rem;
+        }
+
+        .card-title {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #111111;
+        }
+
+        /* Perspective Flip Mechanics */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.34, 1.4, 0.64, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1.25rem;
+            overflow: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-3 sm:p-6 relative selection:bg-red-500 selection:text-white">
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-1/4 left-1/3 w-96 h-96 bg-red-950/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-1/4 right-1/3 w-96 h-96 bg-blue-950/20 rounded-full blur-3xl"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="w-full max-w-2xl z-10 flex justify-between items-center py-3 px-2 border-b border-neutral-800">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-400 flex items-center justify-center shadow-lg">
+                <i data-lucide="flame" class="w-6 h-6 text-white fill-white"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-xl tracking-wider text-white uppercase font-condensed">INTIMATE EVENINGS</h1>
+                <p class="text-[10px] text-neutral-400 font-semibold tracking-widest uppercase">Positions Edition</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button onclick="openDeckManager()" class="p-2.5 rounded-xl bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-neutral-200 transition flex items-center space-x-1.5 text-xs font-bold active:scale-95">
+                <i data-lucide="folder-plus" class="w-4 h-4 text-red-400"></i>
+                <span class="hidden sm:inline">Deck Manager</span>
+            </button>
+            <button id="audio-toggle" onclick="toggleAudio()" class="p-2.5 rounded-xl bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-neutral-200 transition text-xs font-bold active:scale-95">
+                <i data-lucide="volume-2" id="audio-icon" class="w-4 h-4"></i>
+            </button>
+            <button onclick="resetGame()" class="p-2.5 rounded-xl bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-red-400 transition text-xs font-bold active:scale-95">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dynamic Content Area -->
+    <main class="w-full max-w-md my-auto z-10 py-4 flex flex-col justify-center">
+
+        <div id="screen-setup" class="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl">
+            <div class="space-y-2">
+                <div class="w-16 h-16 mx-auto flex items-center justify-center text-red-500">
+                    <i data-lucide="heart-handshake" class="w-12 h-12"></i>
+                </div>
+                <h2 class="text-3xl font-black text-white uppercase font-condensed tracking-wide">INTIMATE EVENINGS</h2>
+                <p class="text-neutral-400 text-xs uppercase tracking-wider font-bold">Sensual Couples Card Game</p>
+            </div>
+
+            <div class="space-y-3 pt-2 text-left">
+                <div>
+                    <label class="text-xs font-bold text-neutral-300 uppercase tracking-wider ml-1">Player 1</label>
+                    <input type="text" id="p1-name" value="Partner 1" class="w-full bg-black/60 border border-neutral-700 rounded-2xl px-4 py-3 text-white font-semibold text-sm focus:outline-none focus:border-red-500 transition">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-neutral-300 uppercase tracking-wider ml-1">Player 2</label>
+                    <input type="text" id="p2-name" value="Partner 2" class="w-full bg-black/60 border border-neutral-700 rounded-2xl px-4 py-3 text-white font-semibold text-sm focus:outline-none focus:border-red-500 transition">
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-base tracking-wider uppercase shadow-xl hover:opacity-95 active:scale-95 transition flex items-center justify-center space-x-2">
+                <span>Start Session</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div id="screen-stage-intro" class="hidden bg-neutral-900 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl">
+            <span id="intro-badge" class="px-4 py-1.5 rounded-full bg-red-500/20 text-red-400 text-xs font-black uppercase tracking-widest border border-red-500/40">
+                Stage 1: Foreplay
+            </span>
+            
+            <h2 id="intro-title" class="text-2xl font-black text-white font-condensed tracking-wide">SENSUAL WARMUP</h2>
+            
+            <p id="intro-desc" class="text-neutral-300 text-sm leading-relaxed">
+                Light, naughty tasks designed to spark desire and build tension before diving deeper.
+            </p>
+
+            <div id="intro-vector" class="w-full h-36 flex items-center justify-center bg-black/40 rounded-2xl border border-neutral-800">
+                <!-- SVG Injected dynamically -->
+            </div>
+
+            <button onclick="launchStageGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-base uppercase tracking-wider shadow-lg hover:opacity-95 active:scale-95 transition">
+                Draw First Card
+            </button>
+        </div>
+
+        <div id="screen-game" class="hidden space-y-4">
+            
+            <!-- Header Status -->
+            <div class="flex items-center justify-between px-2 text-xs font-bold">
+                <span id="game-stage-indicator" class="px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider">
+                    Foreplay Deck
+                </span>
+                <span id="round-indicator" class="text-neutral-400">Round 1 of 5</span>
+            </div>
+
+            <!-- Scorebar & Redraw Limit Indicator -->
+            <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-3 flex justify-between items-center px-6">
+                <div class="text-center">
+                    <div id="p1-display-name" class="text-xs font-bold text-neutral-400">Partner 1</div>
+                    <div id="p1-score" class="text-xl font-black text-red-400">0</div>
+                </div>
+                
+                <div class="text-center bg-black/50 px-3 py-1.5 rounded-xl border border-neutral-800">
+                    <span class="text-[9px] font-bold uppercase text-neutral-400 block">Redraws Left</span>
+                    <span id="redraw-count-display" class="text-xs font-black text-rose-400">3 / 3</span>
+                </div>
+
+                <div class="text-center">
+                    <div id="p2-display-name" class="text-xs font-bold text-neutral-400">Partner 2</div>
+                    <div id="p2-score" class="text-xl font-black text-red-400">0</div>
+                </div>
+            </div>
+
+            <!-- 3D CARD CONTAINER -->
+            <div class="perspective-1000 w-full h-[500px]">
+                <div id="task-card-inner" class="card-inner">
+                    
+                    <!-- CARD FRONT (Cover Face) -->
+                    <div class="card-front bg-neutral-900 border-2 border-red-900/60 p-6 flex flex-col justify-between items-center text-center cursor-pointer shadow-2xl" onclick="drawAndFlipCard()">
+                        <div class="pt-8 space-y-3">
+                            <div class="w-16 h-16 rounded-2xl bg-red-600/20 text-red-500 mx-auto flex items-center justify-center border border-red-500/30">
+                                <i data-lucide="flame" class="w-8 h-8"></i>
+                            </div>
+                            <h3 id="card-front-deck-title" class="text-3xl font-black text-white font-condensed tracking-wider uppercase">FOREPLAY DECK</h3>
+                            <p class="text-xs text-neutral-400">Intimate Evenings</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <span id="front-turn-label" class="inline-block px-4 py-1.5 rounded-full bg-red-500/20 text-red-300 text-xs font-extrabold uppercase tracking-widest border border-red-500/30">
+                                Partner 1's Turn
+                            </span>
+                            <p class="text-[11px] text-neutral-500 font-medium">Tap card to flip & reveal task</p>
+                        </div>
+
+                        <div class="pb-2">
+                            <span class="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">
+                                3 REDRAWS PER ROUND
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- CARD BACK (Exact Physical Position Card Design) -->
+                    <div id="card-back-element" class="card-back position-card p-6 flex flex-col justify-between items-center text-center relative">
+                        
+                        <!-- Title matching physical card layout -->
+                        <div class="w-full border-b border-neutral-300/60 pb-2">
+                            <h3 id="card-title-display" class="card-title text-2xl font-black text-neutral-900 tracking-wide leading-tight">
+                                TASK TITLE
+                            </h3>
+                        </div>
+
+                        <!-- Vector Line Art / Silhouette Illustration Container -->
+                        <div id="card-vector-container" class="w-full h-44 flex items-center justify-center my-2 py-1">
+                            <!-- Injected Vector Silhouette -->
+                        </div>
+
+                        <!-- Description Body matching physical cards -->
+                        <div class="w-full max-h-32 overflow-y-auto custom-scroll px-1 flex items-center justify-center my-auto">
+                            <p id="task-text-display" class="text-xs sm:text-sm font-semibold text-neutral-800 leading-relaxed">
+                                Task description text loading...
+                            </p>
+                        </div>
+
+                        <!-- Action Buttons & Redraw Mechanism -->
+                        <div class="w-full pt-3 space-y-2 border-t border-neutral-300/60">
+                            <button onclick="openJudgeModal()" class="w-full py-3 rounded-xl bg-neutral-900 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg hover:bg-black active:scale-95 transition flex items-center justify-center space-x-1.5">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                                <span>Completed (+1 Pt)</span>
+                            </button>
+                            
+                            <button id="redraw-btn" onclick="redrawTaskCard()" class="w-full py-2 rounded-xl bg-neutral-200 text-neutral-800 font-bold text-xs hover:bg-neutral-300 active:scale-95 transition flex items-center justify-center space-x-1">
+                                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                                <span>Draw Different Task (<span id="btn-redraw-count">3</span> left)</span>
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-judge" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 max-w-sm w-full text-center space-y-5 shadow-2xl">
+                <div class="w-12 h-12 rounded-2xl bg-red-500/20 text-red-400 mx-auto flex items-center justify-center">
+                    <i data-lucide="award" class="w-6 h-6"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-lg font-extrabold text-white">Did Partner complete the task?</h3>
+                    <p class="text-xs text-neutral-400">Success adds +1 point. Refusal deducts -1 point.</p>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="resolveTask(true)" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider transition active:scale-95">
+                        Completed Successfully (+1)
+                    </button>
+                    <button onclick="resolveTask(false)" class="w-full py-3 rounded-xl bg-red-600/80 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider transition active:scale-95">
+                        Refused or Failed (-1)
+                    </button>
+                </div>
+                <button onclick="closeJudgeModal()" class="text-xs text-neutral-500 hover:text-neutral-300 underline">Cancel</button>
+            </div>
+        </div>
+
+        <div id="screen-punishment" class="hidden bg-neutral-900 border border-neutral-800 rounded-3xl p-6 text-center space-y-5 shadow-2xl">
+            <div class="space-y-1">
+                <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/30">
+                    Stage Completed
+                </span>
+                <h2 class="text-2xl font-black text-white font-condensed tracking-wide uppercase">PUNISHMENT CARDS</h2>
+                <p class="text-xs text-neutral-300">
+                    <strong id="loser-name" class="text-red-400">Partner</strong> must perform one of the 3 cards below!
+                </p>
+            </div>
+
+            <!-- 3 Full-Text Cards Grid styled like physical cards -->
+            <div id="punishment-grid" class="grid grid-cols-1 gap-3 text-left">
+                <!-- Dynamically generated position cards -->
+            </div>
+
+            <div id="punishment-selected-box" class="hidden p-4 rounded-2xl bg-black/60 border border-red-500 space-y-3">
+                <span class="text-[10px] font-black text-red-400 uppercase tracking-widest">Chosen Punishment Card</span>
+                <p id="chosen-task-text" class="text-xs font-bold text-white leading-relaxed"></p>
+                <button onclick="proceedToNextStage()" class="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition">
+                    Task Completed! Advance to Next Stage
+                </button>
+            </div>
+        </div>
+
+        <div id="screen-finale" class="hidden bg-neutral-900 border border-neutral-800 rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-600 text-white mx-auto flex items-center justify-center shadow-lg">
+                <i data-lucide="heart" class="w-8 h-8 fill-white"></i>
+            </div>
+            <div class="space-y-2">
+                <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-300 text-xs font-black uppercase tracking-widest">Ultimate Level</span>
+                <h2 class="text-3xl font-black text-white font-condensed uppercase tracking-wide">UNLIMITED PASSION</h2>
+                <p class="text-xs text-neutral-300 max-w-xs mx-auto leading-relaxed">
+                    You've unlocked full physical surrender. Satisfy each other without limits.
+                </p>
+            </div>
+
+            <button onclick="resetGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition">
+                Play New Session
+            </button>
+        </div>
+
+        <div id="modal-deck" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <div class="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 max-w-md w-full space-y-4 max-h-[85vh] flex flex-col shadow-2xl">
+                <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
+                    <h3 class="text-base font-black text-white uppercase tracking-wider flex items-center space-x-2">
+                        <i data-lucide="folder-plus" class="w-5 h-5 text-red-400"></i>
+                        <span>Custom Deck Manager</span>
+                    </h3>
+                    <button onclick="closeDeckManager()" class="text-neutral-400 hover:text-white">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Title</label>
+                        <input type="text" id="custom-card-title" placeholder="Position/Task Title..." class="w-full bg-black/60 border border-neutral-700 rounded-xl px-3 py-2 text-white text-xs font-bold focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Description</label>
+                        <textarea id="custom-card-text" placeholder="Enter custom card instructions..." class="w-full bg-black/60 border border-neutral-700 rounded-xl p-3 text-white text-xs font-semibold focus:outline-none h-16 resize-none"></textarea>
+                    </div>
+
+                    <button onclick="addCustomCard()" class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider transition active:scale-95">
+                        Add Card to Deck
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto custom-scroll border-t border-neutral-800 pt-3 space-y-2">
+                    <h4 class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Custom Cards (<span id="custom-count">0</span>)</h4>
+                    <div id="custom-cards-list" class="space-y-2">
+                        <!-- Custom items -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full max-w-md z-10 text-center py-2 text-[10px] text-neutral-500 font-bold uppercase tracking-widest">
+        INTIMATE EVENINGS EDITION • Adults Only
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // VECTOR ART SILHOUETTES FOR POSITIONS & FOREPLAY
+        const vectorArt = {
+            foreplayWhisper: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <path d="M70 50 C70 30 90 25 100 40 C110 55 90 75 70 50 Z" fill="#e8719c" opacity="0.8"/>
+                    <path d="M130 50 C130 30 150 25 160 40 C170 55 150 75 130 50 Z" fill="#2183c5" opacity="0.8"/>
+                    <path d="M95 50 Q115 35 135 50" stroke="#d92b4b" stroke-width="4" stroke-dasharray="4,4" fill="none"/>
+                </svg>
+            `,
+            foreplayTouch: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <circle cx="90" cy="60" r="25" fill="#e8c9d8" opacity="0.7"/>
+                    <path d="M110 75 C130 65 150 70 170 50" stroke="#d92b4b" stroke-width="10" stroke-linecap="round" fill="none"/>
+                    <circle cx="170" cy="50" r="10" fill="#d92b4b"/>
+                </svg>
+            `,
+            foreplayIce: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <rect x="100" y="40" width="40" height="40" rx="6" fill="#2183c5" opacity="0.6" transform="rotate(15 120 60)"/>
+                    <path d="M70 70 Q120 90 170 70" stroke="#d92b4b" stroke-width="8" stroke-linecap="round" fill="none"/>
+                </svg>
+            `,
+            openWide: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <path d="M20 95 Q120 115 220 95 Q210 80 120 85 Q30 80 20 95 Z" fill="#e8c9d8" opacity="0.7"/>
+                    <path d="M40 75 Q70 65 95 70 C110 50 120 40 135 60 C150 45 165 40 180 65 Q195 70 210 75" stroke="#d92b4b" stroke-width="12" stroke-linecap="round" fill="none"/>
+                    <path d="M60 78 C50 78 45 65 55 60 C65 55 75 70 70 78 Z" fill="#212121"/>
+                    <path d="M120 58 Q130 40 145 50" stroke="#d92b4b" stroke-width="8" stroke-linecap="round" fill="none"/>
+                </svg>
+            `,
+            faceFuck: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <path d="M110 90 Q160 105 210 90 Q200 80 160 82 Q120 80 110 90 Z" fill="#e8c9d8" opacity="0.7"/>
+                    <path d="M140 30 C140 20 150 15 155 25 L150 60 C140 70 120 75 110 85" stroke="#2b2628" stroke-width="12" stroke-linecap="round" fill="none"/>
+                    <circle cx="148" cy="22" r="10" fill="#111"/>
+                    <path d="M120 85 Q160 85 180 65 L200 80" stroke="#d92b4b" stroke-width="10" stroke-linecap="round" fill="none"/>
+                </svg>
+            `,
+            standDeliver: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <path d="M150 35 L150 75 L155 110 M150 75 L145 110" stroke="#2183c5" stroke-width="11" stroke-linecap="round" fill="none"/>
+                    <circle cx="150" cy="25" r="8" fill="#2183c5"/>
+                    <path d="M150 60 Q130 55 120 75 L105 90 Q90 95 100 110" stroke="#d92b4b" stroke-width="11" stroke-linecap="round" fill="none"/>
+                </svg>
+            `,
+            spider: `
+                <svg viewBox="0 0 240 120" class="w-full h-full">
+                    <path d="M70 45 L85 70 L115 90 M85 70 L125 100" stroke="#c91838" stroke-width="11" stroke-linecap="round" fill="none"/>
+                    <circle cx="70" cy="32" r="8" fill="#c91838"/>
+                    <path d="M105 70 Q130 65 155 80 L180 95 M130 68 L150 98" stroke="#e8a2b8" stroke-width="10" stroke-linecap="round" fill="none"/>
+                </svg>
+            `
+        };
+
+        // STAGE 1: FOREPLAY DECK (Over 20+ Naughty & Sensual Warmup Tasks)
+        const foreplayCards = [
+            {
+                title: "DIRTY WHISPERS",
+                text: "Lean in close and whisper the naughtiest, most explicit fantasy you've been craving to do with your partner right into their ear.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "SLOW BLINDFOLD TOUCH",
+                text: "Blindfold your partner and use your fingertips, lips, and warm breath to explore every inch of their body from neck to thigh for 2 full minutes.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "ICE & FIRE",
+                text: "Take an ice cube and trail it slowly down your partner's chest, stomach, and inner thighs, then follow the exact path with warm kisses.",
+                vector: vectorArt.foreplayIce
+            },
+            {
+                title: "SENSUAL TEASE",
+                text: "Undress completely or leave on one seductive item. Give your partner a slow, uninterrupted lap dance without letting them touch you for 90 seconds.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "NECK & COLLARBONE ADORATION",
+                text: "Gently pin your partner's wrists above their head and lavish their neck, collarbone, and sensitive spot behind their ear with slow, open-mouthed kisses.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "EAT OFF ME",
+                text: "Place a small drop of honey, chocolate syrup, or whipped cream on a sensitive spot on your partner's body and lick it off slowly without using your hands.",
+                vector: vectorArt.foreplayIce
+            },
+            {
+                title: "THE SLOW STRIP",
+                text: "Stand in front of your partner and strip off your clothes piece by piece, maintaining intense eye contact and seductively moving to an imaginary rhythm.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "SENSORY FEATHER TOUCH",
+                text: "Using either a real feather, your fingernails, or the edge of your hair, lightly brush against your partner's bare spine and thighs until they shiver.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "HOT BREATH WHISPER",
+                text: "Blow warm breath lightly onto your partner's most sensitive areas (neck, inner thigh, earlobe) without actually letting your skin touch theirs.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "FINGERTIP LABYRINTH",
+                text: "Trace complex, slow patterns across your partner's chest and stomach with a single fingertip, making them guess where you will touch next.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "THIGH WORSHIP",
+                text: "Kneel before your partner, place your hands firmly on their outer hips, and slowly kiss your way up the inside of their thighs closer and closer.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "EARLOBE NIBBLE",
+                text: "Gently take your partner's earlobe between your teeth, giving light, playful nibbles while whispering what you want to do to them tonight.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "BLINDFOLDED TASTE TEST",
+                text: "Blindfold your partner and feed them 3 small drops of different sweet liquids or fruits from your own lips.",
+                vector: vectorArt.foreplayIce
+            },
+            {
+                title: "THE 60-SECOND LOCKOUT",
+                text: "Touch and kiss your partner all over their upper body for exactly 60 seconds, but you are strictly forbidden from touching their most intimate zones.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "CONFESS YOUR DEEPEST DESIRE",
+                text: "Whisper one wild, taboo sexual fantasy you have never had the courage to say out loud before.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "SENSUAL BACK ARCHING",
+                text: "Massage your partner's lower back with warm oil or lotion, pressing your thumbs firmly along their spine until they arch toward you.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "LIP LOCK MARATHON",
+                text: "Engage in a breathless, deep French kiss with your partner for a full 60 seconds without breaking lip contact once.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "WARM BREATH MASSAGE",
+                text: "Cup your partner's face in your hands, exhale warm breath gently across their lips, and kiss them only when they ask for it.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "NAUGHTY COMPLIMENT",
+                text: "Look your partner dead in the eye and describe in explicit, vivid detail what specific part of their body turns you on the most.",
+                vector: vectorArt.foreplayWhisper
+            },
+            {
+                title: "HAIR PULL & KISS",
+                text: "Gently grasp a handful of your partner's hair at the nape of their neck, tilt their head back, and kiss them deeply on the lips.",
+                vector: vectorArt.foreplayTouch
+            },
+            {
+                title: "CHEST KISS DESCENT",
+                text: "Start kissing your partner right at their forehead and slowly make your way down their chin, throat, chest, and stomach at a agonizingly slow pace.",
+                vector: vectorArt.foreplayTouch
+            }
+        ];
+
+        // STAGE 2: CORE POSITIONS DECK
+        const corePositionCards = [
+            {
+                title: "OPEN WIDE AND SAY \"AHHHH\"",
+                text: "For something raunchier (and waaaaaay more satisfying) than 69, raise your hips up and away from their mouth and let them use their fingers or a favorite toy on your parts.",
+                vector: vectorArt.openWide
+            },
+            {
+                title: "THE FACE F*CK",
+                text: "Your partner can straddle your face and, basically, give themselves a blowjob by thrusting into your mouth. If this is too much—and it totally can be!—curl your hand around their shaft as a buffer to control how deep they go.",
+                vector: vectorArt.faceFuck
+            },
+            {
+                title: "STAND AND DELIVER",
+                text: "With both of you standing, the receiver bends over at the waist; the giver enters from behind.",
+                vector: vectorArt.standDeliver
+            },
+            {
+                title: "THE SPIDER",
+                text: "Sit on the bed with legs toward one another, arms back to support yourselves. Now move together so that the receiver goes onto the giver's penis or strap-on, rocking back and forth.",
+                vector: vectorArt.spider
+            }
+        ];
+
+        let customCards = [];
+
+        // Game State Controller
+        let gameState = {
+            p1Name: "Partner 1",
+            p2Name: "Partner 2",
+            currentStage: 1, // 1: Foreplay, 2: Core Positions, 3: Advanced
+            currentRound: 1,
+            maxRounds: 4,
+            p1Score: 0,
+            p2Score: 0,
+            activePlayer: 1,
+            cardFlipped: false,
+            activeCard: {},
+            redrawsRemaining: 3
+        };
+
+        let audioEnabled = true;
+        let audioCtx = null;
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('audio-icon');
+            icon.setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
+            lucide.createIcons();
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'flip') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(260, now);
+                    osc.frequency.exponentialRampToValueAtTime(520, now + 0.12);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'score') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(587, now + 0.08);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            } catch(e) {}
+        }
+
+        function showScreen(id) {
+            const screens = ['screen-setup', 'screen-stage-intro', 'screen-game', 'screen-punishment', 'screen-finale'];
+            screens.forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
+            const target = document.getElementById(id);
+            if (target) target.classList.remove('hidden');
+        }
+
+        function startGame() {
+            const p1 = document.getElementById('p1-name').value.trim();
+            const p2 = document.getElementById('p2-name').value.trim();
+            if (p1) gameState.p1Name = p1;
+            if (p2) gameState.p2Name = p2;
+
+            gameState.currentStage = 1;
+            gameState.currentRound = 1;
+            gameState.p1Score = 0;
+            gameState.p2Score = 0;
+            gameState.activePlayer = 1;
+
+            document.getElementById('p1-display-name').innerText = gameState.p1Name;
+            document.getElementById('p2-display-name').innerText = gameState.p2Name;
+            
+            setupStageIntroContent();
+            showScreen('screen-stage-intro');
+        }
+
+        function setupStageIntroContent() {
+            const badge = document.getElementById('intro-badge');
+            const title = document.getElementById('intro-title');
+            const desc = document.getElementById('intro-desc');
+            const vector = document.getElementById('intro-vector');
+
+            if (gameState.currentStage === 1) {
+                badge.innerText = "Stage 1: Foreplay (20+ Naughty Tasks)";
+                title.innerText = "SENSUAL WARMUP";
+                desc.innerText = "Light, naughty tasks designed to spark desire and build tension before diving deeper.";
+                vector.innerHTML = vectorArt.foreplayWhisper;
+            } else if (gameState.currentStage === 2) {
+                badge.innerText = "Stage 2: Core Positions";
+                title.innerText = "EXPLORE INTIMATE POSITIONS";
+                desc.innerText = "Draw position cards, complete the acts, or use up to 3 redraws if needed.";
+                vector.innerHTML = vectorArt.spider;
+            } else if (gameState.currentStage === 3) {
+                badge.innerText = "Stage 3: Advanced Surrender";
+                title.innerText = "DEEP PASSION & INTENSITY";
+                desc.innerText = "Passions heighten with intensified intimacy and closer connection.";
+                vector.innerHTML = vectorArt.faceFuck;
+            }
+        }
+
+        function launchStageGame() {
+            gameState.cardFlipped = false;
+            gameState.redrawsRemaining = 3;
+            document.getElementById('task-card-inner').classList.remove('flipped');
+            
+            const stageNameIndicator = document.getElementById('game-stage-indicator');
+            const frontDeckTitle = document.getElementById('card-front-deck-title');
+
+            if (gameState.currentStage === 1) {
+                stageNameIndicator.innerText = "Foreplay Deck";
+                frontDeckTitle.innerText = "FOREPLAY DECK";
+            } else if (gameState.currentStage === 2) {
+                stageNameIndicator.innerText = "Core Positions Deck";
+                frontDeckTitle.innerText = "POSITIONS DECK";
+            } else {
+                stageNameIndicator.innerText = "Advanced Deck";
+                frontDeckTitle.innerText = "ADVANCED DECK";
+            }
+
+            showScreen('screen-game');
+            updateScoreboard();
+            prepareCardPrompt();
+        }
+
+        function updateScoreboard() {
+            document.getElementById('round-indicator').innerText = `Round ${gameState.currentRound} of ${gameState.maxRounds}`;
+            document.getElementById('p1-score').innerText = gameState.p1Score;
+            document.getElementById('p2-score').innerText = gameState.p2Score;
+
+            const activeName = gameState.activePlayer === 1 ? gameState.p1Name : gameState.p2Name;
+            document.getElementById('front-turn-label').innerText = `${activeName}'s Turn`;
+
+            updateRedrawUI();
+        }
+
+        function updateRedrawUI() {
+            document.getElementById('redraw-count-display').innerText = `${gameState.redrawsRemaining} / 3`;
+            document.getElementById('btn-redraw-count').innerText = gameState.redrawsRemaining;
+
+            const redrawBtn = document.getElementById('redraw-btn');
+            if (gameState.redrawsRemaining <= 0) {
+                redrawBtn.disabled = true;
+                redrawBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                redrawBtn.disabled = false;
+                redrawBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function prepareCardPrompt() {
+            let activeDeck = foreplayCards;
+            if (gameState.currentStage === 2) {
+                activeDeck = [...corePositionCards, ...customCards];
+            } else if (gameState.currentStage === 3) {
+                activeDeck = [...corePositionCards, ...foreplayCards, ...customCards];
+            }
+
+            const randomIndex = Math.floor(Math.random() * activeDeck.length);
+            gameState.activeCard = activeDeck[randomIndex];
+
+            document.getElementById('card-title-display').innerText = gameState.activeCard.title;
+            document.getElementById('task-text-display').innerText = gameState.activeCard.text;
+            document.getElementById('card-vector-container').innerHTML = gameState.activeCard.vector || vectorArt.openWide;
+        }
+
+        function drawAndFlipCard() {
+            if (gameState.cardFlipped) return;
+            gameState.cardFlipped = true;
+            playSound('flip');
+            document.getElementById('task-card-inner').classList.add('flipped');
+        }
+
+        function redrawTaskCard() {
+            if (gameState.redrawsRemaining <= 0) return;
+            gameState.redrawsRemaining--;
+            playSound('flip');
+            
+            const inner = document.getElementById('task-card-inner');
+            inner.classList.remove('flipped');
+            gameState.cardFlipped = false;
+
+            setTimeout(() => {
+                prepareCardPrompt();
+                inner.classList.add('flipped');
+                gameState.cardFlipped = true;
+            }, 300);
+
+            updateRedrawUI();
+        }
+
+        function openJudgeModal() {
+            document.getElementById('modal-judge').classList.remove('hidden');
+        }
+
+        function closeJudgeModal() {
+            document.getElementById('modal-judge').classList.add('hidden');
+        }
+
+        function resolveTask(success) {
+            closeJudgeModal();
+            playSound('score');
+
+            if (success) {
+                if (gameState.activePlayer === 1) gameState.p1Score++;
+                else gameState.p2Score++;
+            } else {
+                if (gameState.activePlayer === 1) gameState.p1Score = Math.max(0, gameState.p1Score - 1);
+                else gameState.p2Score = Math.max(0, gameState.p2Score - 1);
+            }
+
+            gameState.activePlayer = gameState.activePlayer === 1 ? 2 : 1;
+
+            if (gameState.currentRound < gameState.maxRounds) {
+                gameState.currentRound++;
+                launchStageGame();
+            } else {
+                triggerStageCompletion();
+            }
+        }
+
+        function triggerStageCompletion() {
+            if (gameState.currentStage < 3) {
+                const loserName = gameState.p1Score <= gameState.p2Score ? gameState.p1Name : gameState.p2Name;
+                document.getElementById('loser-name').innerText = loserName;
+                
+                const grid = document.getElementById('punishment-grid');
+                grid.innerHTML = '';
+                
+                const sampleCards = [...foreplayCards, ...corePositionCards, ...customCards].sort(() => 0.5 - Math.random()).slice(0, 3);
+                sampleCards.forEach(card => {
+                    const div = document.createElement('div');
+                    div.className = 'position-card p-4 cursor-pointer hover:scale-[1.01] transition space-y-2';
+                    div.innerHTML = `
+                        <h4 class="font-bold text-sm uppercase font-condensed text-neutral-900">${card.title}</h4>
+                        <p class="text-xs text-neutral-700 leading-relaxed">${card.text}</p>
+                    `;
+                    div.onclick = () => {
+                        document.getElementById('chosen-task-text').innerText = `${card.title}: ${card.text}`;
+                        document.getElementById('punishment-selected-box').classList.remove('hidden');
+                        div.classList.add('ring-2', 'ring-red-600');
+                    };
+                    grid.appendChild(div);
+                });
+
+                document.getElementById('punishment-selected-box').classList.add('hidden');
+                showScreen('screen-punishment');
+            } else {
+                showScreen('screen-finale');
+            }
+        }
+
+        function proceedToNextStage() {
+            gameState.currentStage++;
+            gameState.currentRound = 1;
+            gameState.redrawsRemaining = 3;
+            
+            if (gameState.currentStage <= 3) {
+                setupStageIntroContent();
+                showScreen('screen-stage-intro');
+            } else {
+                showScreen('screen-finale');
+            }
+        }
+
+        function openDeckManager() {
+            document.getElementById('modal-deck').classList.remove('hidden');
+            renderCustomCardsList();
+        }
+
+        function closeDeckManager() {
+            document.getElementById('modal-deck').classList.add('hidden');
+        }
+
+        function addCustomCard() {
+            const titleInput = document.getElementById('custom-card-title');
+            const textInput = document.getElementById('custom-card-text');
+            const title = titleInput.value.trim();
+            const text = textInput.value.trim();
+
+            if (!title || !text) return;
+
+            customCards.push({
+                title: title,
+                text: text,
+                vector: vectorArt.openWide
+            });
+
+            titleInput.value = '';
+            textInput.value = '';
+            renderCustomCardsList();
+        }
+
+        function deleteCustomCard(index) {
+            customCards.splice(index, 1);
+            renderCustomCardsList();
+        }
+
+        function renderCustomCardsList() {
+            document.getElementById('custom-count').innerText = customCards.length;
+            const listContainer = document.getElementById('custom-cards-list');
+            listContainer.innerHTML = '';
+
+            if (customCards.length === 0) {
+                listContainer.innerHTML = `<p class="text-xs text-neutral-500 text-center py-4">No custom cards added yet.</p>`;
+                return;
+            }
+
+            customCards.forEach((card, idx) => {
+                const item = document.createElement('div');
+                item.className = 'bg-black/50 border border-neutral-800 rounded-xl p-3 flex justify-between items-start space-x-2';
+                item.innerHTML = `
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-white uppercase block">${card.title}</span>
+                        <p class="text-[11px] text-neutral-400 line-clamp-2">${card.text}</p>
+                    </div>
+                    <button onclick="deleteCustomCard(${idx})" class="text-neutral-500 hover:text-red-400 p-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                listContainer.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        function resetGame() {
+            showScreen('screen-setup');
+        }
+    </script>
+</body>
+</html>
